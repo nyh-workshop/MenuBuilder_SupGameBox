@@ -23,7 +23,7 @@ namespace MenuBuilder_SupGameBox
         {
             string t0 = textBox1.Text;
             t0 = t0.ToUpper();
-            if(t0.Length > 16)
+            if (t0.Length > 16)
                 t0 = t0.Substring(0, 16);
             return t0;
         }
@@ -31,6 +31,14 @@ namespace MenuBuilder_SupGameBox
         public void putIntoTextBox(string s)
         {
             textBox1.Text = s;
+        }
+
+        private void Form2_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.Close();
+            }
         }
     }
 }

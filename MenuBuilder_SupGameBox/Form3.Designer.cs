@@ -58,10 +58,13 @@
             ControlBox = false;
             Controls.Add(button1);
             Controls.Add(textBox1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            KeyPreview = true;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "Form3";
             Text = "OneBus Registers";
+            KeyDown += Form3_KeyDown;
             ResumeLayout(false);
             PerformLayout();
         }

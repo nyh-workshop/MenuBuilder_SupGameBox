@@ -41,6 +41,7 @@
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(88, 25);
             textBox1.TabIndex = 0;
+            textBox1.KeyDown += textBox1_KeyDown;
             // 
             // label1
             // 
@@ -65,7 +66,7 @@
             textBox2.Location = new Point(136, 48);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(88, 25);
-            textBox2.TabIndex = 0;
+            textBox2.TabIndex = 1;
             // 
             // button1
             // 

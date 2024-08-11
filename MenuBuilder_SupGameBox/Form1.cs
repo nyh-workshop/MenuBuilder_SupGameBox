@@ -437,6 +437,8 @@ namespace MenuBuilder_SupGameBox
 
             Form4 f4 = new Form4();
 
+            f4.setTextBox(listView1.SelectedItems[0].SubItems[4].Text, listView1.SelectedItems[0].SubItems[5].Text);
+
             if (f4.ShowDialog(this) == DialogResult.OK)
             {
                 listView1.SelectedItems[0].SubItems[4].Text = f4.getStartCHRaddr();

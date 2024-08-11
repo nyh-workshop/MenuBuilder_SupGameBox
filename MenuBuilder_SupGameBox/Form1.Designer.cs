@@ -199,6 +199,7 @@
             Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(listView1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             Name = "Form1";

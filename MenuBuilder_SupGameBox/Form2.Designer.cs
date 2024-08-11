@@ -57,13 +57,14 @@
             ClientSize = new Size(329, 46);
             Controls.Add(button1);
             Controls.Add(textBox1);
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "Form2";
             ShowIcon = false;
             ShowInTaskbar = false;
             Text = "Change Title";
+            KeyDown += Form2_KeyDown;
             ResumeLayout(false);
             PerformLayout();
         }
