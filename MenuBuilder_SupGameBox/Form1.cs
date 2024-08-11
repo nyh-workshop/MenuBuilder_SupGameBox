@@ -1,5 +1,6 @@
 using System.Diagnostics.Eventing.Reader;
 using System.Security.Cryptography;
+using Microsoft.VisualBasic.FileIO;
 
 namespace MenuBuilder_SupGameBox
 {
@@ -11,6 +12,11 @@ namespace MenuBuilder_SupGameBox
             initListView1();
             //addTestItemsListView1();
         }
+
+        public System.Windows.Forms.ToolTip tt_b1 = new System.Windows.Forms.ToolTip();
+        public System.Windows.Forms.ToolTip tt_b2 = new System.Windows.Forms.ToolTip();
+        public System.Windows.Forms.ToolTip tt_b3 = new System.Windows.Forms.ToolTip();
+        public System.Windows.Forms.ToolTip tt_b4 = new System.Windows.Forms.ToolTip();
 
         private void initListView1()
         {
@@ -29,7 +35,7 @@ namespace MenuBuilder_SupGameBox
 
         static class MyGlobals
         {
-            public static string buildLocation; 
+            public static string buildLocation;
         }
 
         private void addTestItemsListView1()
@@ -157,8 +163,8 @@ namespace MenuBuilder_SupGameBox
                             appItem.SubItems.Add(mapperNumber.ToString());
                             appItem.SubItems.Add(CHR_size_bytes.ToString());
                             appItem.SubItems.Add(PRG_size_bytes.ToString());
-                            appItem.SubItems.Add(" ");
-                            appItem.SubItems.Add(" ");
+                            appItem.SubItems.Add("0x00000");
+                            appItem.SubItems.Add("0x00000");
                             appItem.SubItems.Add("0x" + resetVector.ToString("X4"));
 
                             appItem.SubItems.Add(fileName);
@@ -450,6 +456,93 @@ namespace MenuBuilder_SupGameBox
                 textBox1.Text = f0.SelectedPath;
                 MyGlobals.buildLocation = f0.SelectedPath;
             }
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog d0 = new OpenFileDialog();
+            d0.Filter = "CSV files (.csv)|*.CSV";
+            DialogResult d0_result = d0.ShowDialog();
+
+            if (d0_result == DialogResult.OK)
+            {
+                listView1.Items.Clear();
+
+                // Reference: http://www.csharphelper.com/howtos/howto_use_text_field_parser.html
+                string[] delimiters = { ";" };
+                using (TextFieldParser parser = FileSystem.OpenTextFieldParser(d0.FileName, delimiters))
+                {
+                    while (!parser.EndOfData)
+                    {
+                        try
+                        {
+                            string[]? fields = parser.ReadFields();
+                            ListViewItem lvi = listView1.Items.Add(fields[0].ToString());
+                            for (int i = 1; i <= 8; i++)
+                            {
+                                lvi.SubItems.Add(fields[i].ToString());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Oops! Error opening and reading CSV!", "Error");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            // Save list of games in CSV:
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "CSV files (.csv)|*.CSV";
+            saveFileDialog1.Title = "Save CSV";
+            saveFileDialog1.ShowDialog();
+
+            // If the file name is not an empty string open it for saving.
+            if (saveFileDialog1.FileName != "")
+            {
+                using (StreamWriter writer = new StreamWriter(saveFileDialog1.FileName))
+                {
+                    for (int i = 0; i < listView1.Items.Count; i++)
+                    {
+                        string strEntry = String.Format("{0}; {1}; {2}; {3}; {4}; {5}; {6}; {7}; {8}",
+                            listView1.Items[i].SubItems[0].Text,
+                            listView1.Items[i].SubItems[1].Text,
+                            listView1.Items[i].SubItems[2].Text,
+                            listView1.Items[i].SubItems[3].Text,
+                            listView1.Items[i].SubItems[4].Text,
+                            listView1.Items[i].SubItems[5].Text,
+                            listView1.Items[i].SubItems[6].Text,
+                            listView1.Items[i].SubItems[7].Text,
+                            listView1.Items[i].SubItems[8].Text);
+
+                        writer.WriteLine(strEntry);
+                    }
+                }
+            }
+        }
+
+        private void button1_MouseHover(object sender, EventArgs e)
+        {
+            tt_b1.SetToolTip(button1, "Move Item Up");
+        }
+
+        private void button4_MouseHover(object sender, EventArgs e)
+        {
+            tt_b4.SetToolTip(button4, "Move Item Down");
+        }
+
+        private void button2_MouseHover(object sender, EventArgs e)
+        {
+            tt_b2.SetToolTip(button2, "Add item");
+        }
+
+        private void button3_MouseHover(object sender, EventArgs e)
+        {
+            tt_b3.SetToolTip(button3, "Remove item");
         }
     }
 }
