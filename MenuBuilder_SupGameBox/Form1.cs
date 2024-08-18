@@ -30,7 +30,8 @@ namespace MenuBuilder_SupGameBox
             listView1.Columns.Add("Start PRG", 75, HorizontalAlignment.Left);
             listView1.Columns.Add("Reset Vector", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("NES file", 300, HorizontalAlignment.Left);
-            listView1.Columns.Add("OneBus Registers", 300, HorizontalAlignment.Left);
+            listView1.Columns.Add("OneBus Registers", 500, HorizontalAlignment.Left);
+            listView1.Columns.Add("HM/VM", 75, HorizontalAlignment.Left);
         }
 
         static class MyGlobals
@@ -130,6 +131,7 @@ namespace MenuBuilder_SupGameBox
                 string fileName = d0.FileName;
                 string title = Path.GetFileNameWithoutExtension(d0.FileName);
                 string configText16 = " ";
+                int nameTableArrangement = 0;
                 try
                 {
                     // Process if there is NES header!
@@ -143,6 +145,7 @@ namespace MenuBuilder_SupGameBox
                             // Process the remaining attributes of the NES file:
                             PRG_size_bytes = headerBuffer[4] * 16384;
                             CHR_size_bytes = headerBuffer[5] * 8192;
+                            nameTableArrangement = headerBuffer[6] & 0x01;
                             mapperNumber = (headerBuffer[7] & 0xf0) | ((headerBuffer[6] & 0xf0) >> 4);
 
                             // Put an entry into the list:
@@ -169,6 +172,7 @@ namespace MenuBuilder_SupGameBox
 
                             appItem.SubItems.Add(fileName);
                             appItem.SubItems.Add(configText16);
+                            appItem.SubItems.Add(Convert.ToString(nameTableArrangement));
                             listView1.Items.Add(appItem);
                         }
                         else
@@ -345,7 +349,7 @@ namespace MenuBuilder_SupGameBox
                 const int NES_HEADER_SIZE = 16;
 
                 // Maximum amount of bytes for MMC3:
-                byte[] CHR_total = new byte[8192];
+                byte[] CHR_total = new byte[262144];
                 byte[] PRG_total = new byte[524288];
 
                 // Create the empty bin file here:
@@ -363,11 +367,13 @@ namespace MenuBuilder_SupGameBox
                 }
 
                 // Open the NES file first and copy its CHRs and PRGs:
+                // SubItems 1: Mapper number.
                 // SubItems 2-3: CHR size and PRG size.
                 // SubItems 4-5: startCHR and startPRG.
                 // SubItem 7: NES file path.
                 for (int i = 0; i < listView1.Items.Count; i++)
                 {
+                    int mapper = Convert.ToInt32(listView1.Items[i].SubItems[1].Text, 10);
                     int CHRsize = Convert.ToInt32(listView1.Items[i].SubItems[2].Text, 10);
                     int PRGsize = Convert.ToInt32(listView1.Items[i].SubItems[3].Text, 10);
                     int CHR_startAddr = Convert.ToInt32(listView1.Items[i].SubItems[4].Text, 16);
@@ -479,11 +485,15 @@ namespace MenuBuilder_SupGameBox
                         try
                         {
                             string[]? fields = parser.ReadFields();
-                            ListViewItem lvi = listView1.Items.Add(fields[0].ToString());
+                            string[] tempOneBusArr = fields[8].Split(", ");
+                            // Get the horz/vert mirroring bit here!
+                            int nt_arrange = Convert.ToInt32(tempOneBusArr[10], 16);
+                            ListViewItem lvi = listView1.Items.Add(fields[0].ToString());                            
                             for (int i = 1; i <= 8; i++)
                             {
                                 lvi.SubItems.Add(fields[i].ToString());
                             }
+                            lvi.SubItems.Add(nt_arrange.ToString());
                         }
                         catch (Exception ex)
                         {
