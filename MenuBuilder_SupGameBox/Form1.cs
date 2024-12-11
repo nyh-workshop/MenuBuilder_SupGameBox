@@ -488,7 +488,7 @@ namespace MenuBuilder_SupGameBox
                             string[] tempOneBusArr = fields[8].Split(", ");
                             // Get the horz/vert mirroring bit here!
                             int nt_arrange = Convert.ToInt32(tempOneBusArr[10], 16);
-                            ListViewItem lvi = listView1.Items.Add(fields[0].ToString());                            
+                            ListViewItem lvi = listView1.Items.Add(fields[0].ToString());
                             for (int i = 1; i <= 8; i++)
                             {
                                 lvi.SubItems.Add(fields[i].ToString());
@@ -555,6 +555,240 @@ namespace MenuBuilder_SupGameBox
         private void button3_MouseHover(object sender, EventArgs e)
         {
             tt_b3.SetToolTip(button3, "Remove item");
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            // Todo: Auto Populate OneBus games.
+            // Todo: Also PhyROM_addr must advance!
+            // Supported Mapper 0 and MMC3 only!
+            // This needs also a free space bitmap.
+            // Subitems 4 and 5: Start CHR and  Start PRG.
+            const int MAPPER_0 = 0x00;
+            const int MAPPER_MMC3 = 0x04;
+            
+            const int BANK_8KB_SIZE_BYTES = 0x2000;
+            const int TOTAL_ROM_SIZE_BYTES = 0x800000;
+            //const int TOTAL_8MB_ROM_SIZE_BYTES = 0x800000;
+
+            const int NUM_OF_BITS = TOTAL_ROM_SIZE_BYTES / BANK_8KB_SIZE_BYTES;
+            int START_CUSTOMROM_ADDR = 0x90000;
+
+            bool[] freeSpaceBitmap = new bool[NUM_OF_BITS];
+            Array.Fill(freeSpaceBitmap, false);
+
+            try
+            {
+                // Check no. of items!
+                if (listView1.Items.Count == 0)
+                {
+                    throw new ApplicationException("Oops! No games in list!");
+                }
+
+                foreach (ListViewItem i in listView1.Items)
+                {
+                    OneBusRegisters obr = default;
+
+                    int PRG_size = Convert.ToInt32(i.SubItems[3].Text, 10);
+                    int mapper = Convert.ToInt32(i.SubItems[1].Text, 10);
+                    int HMVM = Convert.ToInt32(i.SubItems[9].Text, 10);
+                    
+                    // Check Mapper 0:
+                    if (mapper == MAPPER_0)
+                    {
+                        // PRG:
+                        // Check each empty space in the free space bitmap.
+                        // It must have 4-bits with false.
+                        // Mapper 0: Find the nearest 64k block. If found, fill in the last 32k inside the 64k block.
+                        for (int j = 0; j < NUM_OF_BITS; j += 8)
+                        {
+                            // Equivalent to Python's freeSpaceBitmap[j+4:j+7] ->
+                            var take4bits = freeSpaceBitmap.Skip(j + 4).Take(4);
+
+                            bool[] bitsToCompare_NotFilledSpace = new bool[4];
+                            Array.Fill(bitsToCompare_NotFilledSpace, false);
+
+                            int adjAddrAlign = 0x0000;
+
+                            if (take4bits.SequenceEqual(bitsToCompare_NotFilledSpace))
+                            {
+                                // Console.WriteLine("found one empty space for PRG {0}", g[i].gameName);
+                                // Console.WriteLine("physical ROM address: {0:X} - {1:X}", (j + 4) * BANK_8KB_SIZE_BYTES, (j + 8) * BANK_8KB_SIZE_BYTES);
+                                
+                                switch(PRG_size)
+                                {
+                                    // 16K games are aligned to 0xC000-0xFFFF:
+                                    case 0x4000:
+                                        adjAddrAlign = ((j + 4) * BANK_8KB_SIZE_BYTES) + 0x4000 + START_CUSTOMROM_ADDR;
+                                        break;
+                                    // 32K games are aligned to 0x8000-0xFFFF:
+                                    case 0x8000:
+                                        adjAddrAlign = ((j + 4) * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR;
+                                        break;
+                                    default:
+                                        // Todo: Raise exception here for non-standard sizes!
+                                        break;
+                                }
+                                
+                                // Fill the 4 bits and place the PRG within that address range.
+                                bool[] filledSpaceBits = new bool[4];
+                                Array.Fill(filledSpaceBits, true);
+                                Array.Copy(filledSpaceBits, 0, freeSpaceBitmap, j + 4, 4);
+                                // Set OneBus values here!
+                                // After calculate stick this into the OneBus value! :D
+                                i.SubItems[5].Text = "0x" + (adjAddrAlign).ToString("X4");
+                                CalcOneBus_PRG(ref obr, adjAddrAlign, mapper, HMVM, PRG_size);
+                                break;
+                            }
+                        }
+                        // CHR:
+                        // Check each empty space in the free space bitmap.
+                        // Mapper 0: Find the nearest 8k block. If found, fill in that one.
+                        for (int j = 0; j < NUM_OF_BITS; j++)
+                        {
+                            var take1bit = freeSpaceBitmap[j];
+
+                            if (take1bit == false)
+                            {
+                                // Console.WriteLine("found one empty space for CHR {0}", g[i].gameName);
+                                // Console.WriteLine("physical ROM address: {0:X} - {1:X}", j * BANK_8KB_SIZE_BYTES, (j + 1) * BANK_8KB_SIZE_BYTES);
+                                i.SubItems[4].Text = "0x" + ((j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR).ToString("X4");
+
+                                freeSpaceBitmap[j] = true;
+                                // Set OneBus values here!
+                                CalcOneBus_CHR(ref obr, (j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR, mapper);
+                                break;
+                            }
+                        }
+
+                        i.SubItems[8].Text = obr.ToString();
+                    }
+                    else
+                    {
+                        throw new ApplicationException("Mapper 0 games only supported!");
+                    }
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Oops! Error populating list!", "Error");
+                return;
+            };
+
+        }
+
+        public struct OneBusRegisters
+        {
+            public OneBusRegisters()
+            {
+                R2012 = 0;
+                R2013 = 0;
+                R2014 = 0;
+                R2015 = 0;
+                R2016 = 0;
+                R2017 = 0;
+                R2018 = 0;
+                R201A = 0;
+                R4100 = 0;
+                R4105 = 0;
+                R4106 = 0;
+                R4107 = 0;
+                R4108 = 0;
+                R4109 = 0;
+                R410A = 0;
+                R410B = 0;
+            }
+
+            public int R2012 { set; get; }
+            public int R2013 { set; get; }
+            public int R2014 { set; get; }
+            public int R2015 { set; get; }
+            public int R2016 { set; get; }
+            public int R2017 { set; get; }
+            public int R2018 { set; get; }
+            public int R201A { set; get; }
+            public int R4100 { set; get; }
+            public int R4105 { set; get; }
+            public int R4106 { set; get; }
+            public int R4107 { set; get; }
+            public int R4108 { set; get; }
+            public int R4109 { set; get; }
+            public int R410A { set; get; }
+            public int R410B { set; get; }
+
+            public override readonly string ToString()
+            {
+                string rtnStr_2000 = String.Format("0x{0:X2}, 0x{1:X2}, 0x{2:X2}, 0x{3:X2}, 0x{4:X2}, 0x{5:X2}, 0x{6:X2}, 0x{7:X2}, ", R2012, R2013, R2014, R2015, R2016, R2017, R2018, R201A);
+                string rtnStr_4000 = String.Format("0x{0:X2}, 0x{1:X2}, 0x{2:X2}, 0x{3:X2}, 0x{4:X2}, 0x{5:X2}, 0x{6:X2}, 0x{7:X2}", R4100, R4105, R4106, R4107, R4108, R4109, R410A, R410B);
+                return rtnStr_2000 + rtnStr_4000;
+            }
+        }
+
+        private static void CalcOneBus_PRG(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper, int a_HMVM, int aPRGsize)
+        {
+            // Mapper 0 covers 64KB at PRG.
+            // All the banks started at 0x8000.
+            if (mapper == 0x00)
+            {
+                a_Obr.R4100 = (phyROM_Addr / 0x200000) << 4;
+                a_Obr.R410A = (phyROM_Addr & 0x1F0000) >> 13;
+                if ((a_HMVM & 0x1) == 0)
+                    a_Obr.R4106 |= 0x01;
+                else
+                    a_Obr.R4106 &= ~0x01;
+                a_Obr.R4107 = 0x4;
+                a_Obr.R4108 = 0x5;
+                switch (aPRGsize)
+                {
+                    // 16k PRG:
+                    case 0x4000:
+                        a_Obr.R410A += 0x06;
+                        a_Obr.R410B = 0x05;
+                        break;
+                    // 32k PRG:
+                    case 0x8000:
+                        a_Obr.R410A += 0x04;
+                        a_Obr.R410B = 0x04;
+                        break;
+                    default:
+                        // Todo: Raise exception here for non-standard sizes!
+                        break;
+                }                
+            }
+        }
+        private static void CalcOneBus_CHR(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper)
+        {
+            if (mapper == 0x00)
+            {
+                a_Obr.R2018 = ((phyROM_Addr % 0x200000) / 0x40000) << 4;
+
+                int upperNibble_2012_2017 = ((phyROM_Addr % 0x200000) % 0x40000) / 0x4000;
+                int lowerNibble_2012_2017 = ((phyROM_Addr % 0x200000) % 0x40000) % 0x4000;
+
+                if (lowerNibble_2012_2017 > 0)
+                {
+                    a_Obr.R2012 = 0x0c | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2013 = 0x0d | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2014 = 0x0e | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2015 = 0x0f | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2016 = 0x08 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2017 = 0x0a | (upperNibble_2012_2017 << 4);
+                }
+                else
+                {
+                    a_Obr.R2012 = 0x04 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2013 = 0x05 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2014 = 0x06 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2015 = 0x07 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2016 = 0x00 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2017 = 0x02 | (upperNibble_2012_2017 << 4);
+                }
+            }
         }
     }
 }

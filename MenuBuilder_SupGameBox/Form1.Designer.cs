@@ -42,6 +42,7 @@
             button8 = new Button();
             button9 = new Button();
             button10 = new Button();
+            button11 = new Button();
             SuspendLayout();
             // 
             // listView1
@@ -120,7 +121,7 @@
             button6.Name = "button6";
             button6.Size = new Size(113, 54);
             button6.TabIndex = 1;
-            button6.Text = "Config OneBus";
+            button6.Text = "Manual Config OneBus";
             button6.UseVisualStyleBackColor = true;
             button6.Click += button6_Click;
             // 
@@ -181,11 +182,22 @@
             button10.UseVisualStyleBackColor = true;
             button10.Click += button10_Click;
             // 
+            // button11
+            // 
+            button11.Location = new Point(377, 303);
+            button11.Name = "button11";
+            button11.Size = new Size(123, 52);
+            button11.TabIndex = 10;
+            button11.Text = "Auto Populate OneBus";
+            button11.UseVisualStyleBackColor = true;
+            button11.Click += button11_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(903, 366);
+            Controls.Add(button11);
             Controls.Add(button10);
             Controls.Add(button9);
             Controls.Add(button8);
@@ -223,5 +235,6 @@
         private Button button9;
         private Button button10;
         public Button button1;
+        private Button button11;
     }
 }
