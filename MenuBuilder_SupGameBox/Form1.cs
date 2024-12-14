@@ -18,6 +18,20 @@ namespace MenuBuilder_SupGameBox
         public System.Windows.Forms.ToolTip tt_b3 = new System.Windows.Forms.ToolTip();
         public System.Windows.Forms.ToolTip tt_b4 = new System.Windows.Forms.ToolTip();
 
+        enum GameProperties
+        {
+            TITLE = 0,
+            MAPPER,
+            CHR_SIZE,
+            PRG_SIZE,
+            STRT_CHR,
+            STRT_PRG,
+            RESET_VECTOR,
+            NES_FILE,
+            ONEBUS_REGS,
+            HM_VM
+        }
+
         private void initListView1()
         {
             listView1.View = View.Details;
@@ -255,7 +269,7 @@ namespace MenuBuilder_SupGameBox
                     // Then reset vectors. Needed to open NES file and locate them manually!
                     for (int i = 0; i < listView1.Items.Count; i++)
                     {
-                        string s0 = listView1.Items[i].SubItems[6].Text.Substring(2);
+                        string s0 = listView1.Items[i].SubItems[(int)GameProperties.RESET_VECTOR].Text.Substring(2);
                         int resetVector = Convert.ToInt32(s0, 16);
                         string rv_h = "0x" + (resetVector >> 8).ToString("X2");
                         string rv_l = "0x" + (resetVector & 0x00ff).ToString("X2");
@@ -373,11 +387,11 @@ namespace MenuBuilder_SupGameBox
                 // SubItem 7: NES file path.
                 for (int i = 0; i < listView1.Items.Count; i++)
                 {
-                    int mapper = Convert.ToInt32(listView1.Items[i].SubItems[1].Text, 10);
-                    int CHRsize = Convert.ToInt32(listView1.Items[i].SubItems[2].Text, 10);
-                    int PRGsize = Convert.ToInt32(listView1.Items[i].SubItems[3].Text, 10);
-                    int CHR_startAddr = Convert.ToInt32(listView1.Items[i].SubItems[4].Text, 16);
-                    int PRG_startAddr = Convert.ToInt32(listView1.Items[i].SubItems[5].Text, 16);
+                    int mapper = Convert.ToInt32(listView1.Items[i].SubItems[(int)GameProperties.MAPPER].Text, 10);
+                    int CHRsize = Convert.ToInt32(listView1.Items[i].SubItems[(int)GameProperties.CHR_SIZE].Text, 10);
+                    int PRGsize = Convert.ToInt32(listView1.Items[i].SubItems[(int)GameProperties.PRG_SIZE].Text, 10);
+                    int CHR_startAddr = Convert.ToInt32(listView1.Items[i].SubItems[(int)GameProperties.STRT_CHR].Text, 16);
+                    int PRG_startAddr = Convert.ToInt32(listView1.Items[i].SubItems[(int)GameProperties.STRT_PRG].Text, 16);
 
                     using (BinaryReader bReadStream = new BinaryReader(new FileStream(listView1.Items[i].SubItems[7].Text, FileMode.Open)))
                     {
@@ -426,11 +440,11 @@ namespace MenuBuilder_SupGameBox
 
             Form3 f3 = new Form3();
 
-            f3.setTextBox(listView1.SelectedItems[0].SubItems[8].Text);
+            f3.setTextBox(listView1.SelectedItems[0].SubItems[(int)GameProperties.ONEBUS_REGS].Text);
 
             if (f3.ShowDialog(this) == DialogResult.OK)
             {
-                listView1.SelectedItems[0].SubItems[8].Text = f3.getConfig16Text();
+                listView1.SelectedItems[0].SubItems[(int)GameProperties.ONEBUS_REGS].Text = f3.getConfig16Text();
             }
 
             f3.Dispose();
@@ -443,12 +457,12 @@ namespace MenuBuilder_SupGameBox
 
             Form4 f4 = new Form4();
 
-            f4.setTextBox(listView1.SelectedItems[0].SubItems[4].Text, listView1.SelectedItems[0].SubItems[5].Text);
+            f4.setTextBox(listView1.SelectedItems[0].SubItems[(int)GameProperties.STRT_CHR].Text, listView1.SelectedItems[0].SubItems[(int)GameProperties.STRT_PRG].Text);
 
             if (f4.ShowDialog(this) == DialogResult.OK)
             {
-                listView1.SelectedItems[0].SubItems[4].Text = f4.getStartCHRaddr();
-                listView1.SelectedItems[0].SubItems[5].Text = f4.getStartPRGaddr();
+                listView1.SelectedItems[0].SubItems[(int)GameProperties.STRT_CHR].Text = f4.getStartCHRaddr();
+                listView1.SelectedItems[0].SubItems[(int)GameProperties.STRT_PRG].Text = f4.getStartPRGaddr();
             }
 
             f4.Dispose();
@@ -487,7 +501,14 @@ namespace MenuBuilder_SupGameBox
                             string[]? fields = parser.ReadFields();
                             string[] tempOneBusArr = fields[8].Split(", ");
                             // Get the horz/vert mirroring bit here!
-                            int nt_arrange = Convert.ToInt32(tempOneBusArr[10], 16);
+                            // On VT-02 specs this is reversed!
+                            // int nt_arrange = Convert.ToInt32(tempOneBusArr[10], 16);
+                            int nt_arrange = 0;
+
+                            if (Convert.ToInt32(tempOneBusArr[10], 16) == 0)
+                                nt_arrange = 1;
+                            else
+                                nt_arrange = 0;
                             ListViewItem lvi = listView1.Items.Add(fields[0].ToString());
                             for (int i = 1; i <= 8; i++)
                             {
@@ -521,15 +542,15 @@ namespace MenuBuilder_SupGameBox
                     for (int i = 0; i < listView1.Items.Count; i++)
                     {
                         string strEntry = String.Format("{0}; {1}; {2}; {3}; {4}; {5}; {6}; {7}; {8}",
-                            listView1.Items[i].SubItems[0].Text,
-                            listView1.Items[i].SubItems[1].Text,
-                            listView1.Items[i].SubItems[2].Text,
-                            listView1.Items[i].SubItems[3].Text,
-                            listView1.Items[i].SubItems[4].Text,
-                            listView1.Items[i].SubItems[5].Text,
-                            listView1.Items[i].SubItems[6].Text,
-                            listView1.Items[i].SubItems[7].Text,
-                            listView1.Items[i].SubItems[8].Text);
+                            listView1.Items[i].SubItems[(int)GameProperties.TITLE].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.MAPPER].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.CHR_SIZE].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.PRG_SIZE].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.STRT_CHR].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.STRT_PRG].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.RESET_VECTOR].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.NES_FILE].Text,
+                            listView1.Items[i].SubItems[(int)GameProperties.ONEBUS_REGS].Text);
 
                         writer.WriteLine(strEntry);
                     }
@@ -589,9 +610,9 @@ namespace MenuBuilder_SupGameBox
                 {
                     OneBusRegisters obr = default;
 
-                    int PRG_size = Convert.ToInt32(i.SubItems[3].Text, 10);
-                    int mapper = Convert.ToInt32(i.SubItems[1].Text, 10);
-                    int HMVM = Convert.ToInt32(i.SubItems[9].Text, 10);
+                    int PRG_size = Convert.ToInt32(i.SubItems[(int)GameProperties.PRG_SIZE].Text, 10);
+                    int mapper = Convert.ToInt32(i.SubItems[(int)GameProperties.MAPPER].Text, 10);
+                    int HMVM = Convert.ToInt32(i.SubItems[(int)GameProperties.HM_VM].Text, 10);
                     
                     // Check Mapper 0:
                     if (mapper == MAPPER_0)
@@ -636,7 +657,7 @@ namespace MenuBuilder_SupGameBox
                                 Array.Copy(filledSpaceBits, 0, freeSpaceBitmap, j + 4, 4);
                                 // Set OneBus values here!
                                 // After calculate stick this into the OneBus value! :D
-                                i.SubItems[5].Text = "0x" + (adjAddrAlign).ToString("X4");
+                                i.SubItems[(int)GameProperties.STRT_PRG].Text = "0x" + (adjAddrAlign).ToString("X4");
                                 CalcOneBus_PRG(ref obr, adjAddrAlign, mapper, HMVM, PRG_size);
                                 break;
                             }
@@ -652,7 +673,7 @@ namespace MenuBuilder_SupGameBox
                             {
                                 // Console.WriteLine("found one empty space for CHR {0}", g[i].gameName);
                                 // Console.WriteLine("physical ROM address: {0:X} - {1:X}", j * BANK_8KB_SIZE_BYTES, (j + 1) * BANK_8KB_SIZE_BYTES);
-                                i.SubItems[4].Text = "0x" + ((j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR).ToString("X4");
+                                i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + ((j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR).ToString("X4");
 
                                 freeSpaceBitmap[j] = true;
                                 // Set OneBus values here!
@@ -661,7 +682,7 @@ namespace MenuBuilder_SupGameBox
                             }
                         }
 
-                        i.SubItems[8].Text = obr.ToString();
+                        i.SubItems[(int)GameProperties.ONEBUS_REGS].Text = obr.ToString();
                     }
                     else
                     {
