@@ -43,6 +43,10 @@
             button9 = new Button();
             button10 = new Button();
             button11 = new Button();
+            label2 = new Label();
+            radioButton_8MIB = new RadioButton();
+            radioButton_16MIB = new RadioButton();
+            radioButton_32MIB = new RadioButton();
             SuspendLayout();
             // 
             // listView1
@@ -50,9 +54,9 @@
             listView1.FullRowSelect = true;
             listView1.GridLines = true;
             listView1.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            listView1.Location = new Point(12, 39);
+            listView1.Location = new Point(14, 44);
             listView1.Name = "listView1";
-            listView1.Size = new Size(879, 256);
+            listView1.Size = new Size(1004, 286);
             listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.MouseDoubleClick += listView1_MouseDoubleClick;
@@ -60,9 +64,9 @@
             // button1
             // 
             button1.Image = Properties.Resources._103296_full_up_arrow_icon;
-            button1.Location = new Point(12, 301);
+            button1.Location = new Point(14, 336);
             button1.Name = "button1";
-            button1.Size = new Size(54, 54);
+            button1.Size = new Size(62, 60);
             button1.TabIndex = 1;
             button1.Tag = "\"Move Up\"";
             button1.UseVisualStyleBackColor = true;
@@ -72,9 +76,9 @@
             // button2
             // 
             button2.Image = Properties.Resources._1110960_essential_in_plus_round_set_icon;
-            button2.Location = new Point(72, 301);
+            button2.Location = new Point(82, 336);
             button2.Name = "button2";
-            button2.Size = new Size(54, 54);
+            button2.Size = new Size(62, 60);
             button2.TabIndex = 1;
             button2.Tag = "\"Add Item\"";
             button2.UseVisualStyleBackColor = true;
@@ -84,9 +88,9 @@
             // button3
             // 
             button3.Image = Properties.Resources._1110958_essential_out_minus_round_set_icon;
-            button3.Location = new Point(132, 301);
+            button3.Location = new Point(151, 336);
             button3.Name = "button3";
-            button3.Size = new Size(54, 54);
+            button3.Size = new Size(62, 60);
             button3.TabIndex = 1;
             button3.Tag = "\"Remove Item\"";
             button3.UseVisualStyleBackColor = true;
@@ -96,9 +100,9 @@
             // button4
             // 
             button4.Image = Properties.Resources._103291_down_full_arrow_icon;
-            button4.Location = new Point(192, 300);
+            button4.Location = new Point(219, 335);
             button4.Name = "button4";
-            button4.Size = new Size(54, 54);
+            button4.Size = new Size(62, 60);
             button4.TabIndex = 1;
             button4.Tag = "\"Move Down\"";
             button4.UseVisualStyleBackColor = true;
@@ -107,9 +111,9 @@
             // 
             // button5
             // 
-            button5.Location = new Point(795, 301);
+            button5.Location = new Point(909, 336);
             button5.Name = "button5";
-            button5.Size = new Size(96, 53);
+            button5.Size = new Size(110, 59);
             button5.TabIndex = 4;
             button5.Text = "Compile!";
             button5.UseVisualStyleBackColor = true;
@@ -117,9 +121,9 @@
             // 
             // button6
             // 
-            button6.Location = new Point(504, 301);
+            button6.Location = new Point(576, 336);
             button6.Name = "button6";
-            button6.Size = new Size(113, 54);
+            button6.Size = new Size(129, 60);
             button6.TabIndex = 1;
             button6.Text = "Manual Config OneBus";
             button6.UseVisualStyleBackColor = true;
@@ -127,9 +131,9 @@
             // 
             // button7
             // 
-            button7.Location = new Point(623, 301);
+            button7.Location = new Point(712, 336);
             button7.Name = "button7";
-            button7.Size = new Size(166, 53);
+            button7.Size = new Size(190, 59);
             button7.TabIndex = 1;
             button7.Text = "Set Start CHR and PRG";
             button7.UseVisualStyleBackColor = true;
@@ -137,16 +141,16 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(116, 8);
+            textBox1.Location = new Point(133, 9);
             textBox1.Name = "textBox1";
-            textBox1.Size = new Size(384, 25);
+            textBox1.Size = new Size(438, 26);
             textBox1.TabIndex = 5;
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(12, 11);
+            label1.Location = new Point(14, 12);
             label1.Name = "label1";
             label1.Size = new Size(107, 21);
             label1.TabIndex = 6;
@@ -154,9 +158,9 @@
             // 
             // button8
             // 
-            button8.Location = new Point(506, 8);
+            button8.Location = new Point(578, 9);
             button8.Name = "button8";
-            button8.Size = new Size(75, 23);
+            button8.Size = new Size(86, 26);
             button8.TabIndex = 7;
             button8.Text = "Browse";
             button8.UseVisualStyleBackColor = true;
@@ -164,9 +168,9 @@
             // 
             // button9
             // 
-            button9.Location = new Point(700, 8);
+            button9.Location = new Point(800, 9);
             button9.Name = "button9";
-            button9.Size = new Size(89, 23);
+            button9.Size = new Size(102, 26);
             button9.TabIndex = 8;
             button9.Text = "Load CSV";
             button9.UseVisualStyleBackColor = true;
@@ -174,9 +178,9 @@
             // 
             // button10
             // 
-            button10.Location = new Point(795, 8);
+            button10.Location = new Point(909, 9);
             button10.Name = "button10";
-            button10.Size = new Size(96, 23);
+            button10.Size = new Size(110, 26);
             button10.TabIndex = 9;
             button10.Text = "Save CSV";
             button10.UseVisualStyleBackColor = true;
@@ -184,19 +188,64 @@
             // 
             // button11
             // 
-            button11.Location = new Point(377, 303);
+            button11.Location = new Point(431, 336);
             button11.Name = "button11";
-            button11.Size = new Size(123, 52);
+            button11.Size = new Size(141, 61);
             button11.TabIndex = 10;
             button11.Text = "Auto Populate OneBus";
             button11.UseVisualStyleBackColor = true;
             button11.Click += button11_Click;
             // 
+            // label2
+            // 
+            label2.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Location = new Point(287, 336);
+            label2.Name = "label2";
+            label2.Size = new Size(138, 21);
+            label2.TabIndex = 0;
+            label2.Text = "Flash Size (MiB):";
+            // 
+            // radioButton_8MIB
+            // 
+            radioButton_8MIB.AutoSize = true;
+            radioButton_8MIB.Checked = true;
+            radioButton_8MIB.Location = new Point(287, 360);
+            radioButton_8MIB.Name = "radioButton_8MIB";
+            radioButton_8MIB.Size = new Size(35, 23);
+            radioButton_8MIB.TabIndex = 11;
+            radioButton_8MIB.TabStop = true;
+            radioButton_8MIB.Text = "8";
+            radioButton_8MIB.UseVisualStyleBackColor = true;
+            // 
+            // radioButton_16MIB
+            // 
+            radioButton_16MIB.AutoSize = true;
+            radioButton_16MIB.Location = new Point(328, 360);
+            radioButton_16MIB.Name = "radioButton_16MIB";
+            radioButton_16MIB.Size = new Size(43, 23);
+            radioButton_16MIB.TabIndex = 12;
+            radioButton_16MIB.Text = "16";
+            radioButton_16MIB.UseVisualStyleBackColor = true;
+            // 
+            // radioButton_32MIB
+            // 
+            radioButton_32MIB.AutoSize = true;
+            radioButton_32MIB.Location = new Point(377, 360);
+            radioButton_32MIB.Name = "radioButton_32MIB";
+            radioButton_32MIB.Size = new Size(43, 23);
+            radioButton_32MIB.TabIndex = 13;
+            radioButton_32MIB.Text = "32";
+            radioButton_32MIB.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(903, 366);
+            ClientSize = new Size(1032, 409);
+            Controls.Add(radioButton_32MIB);
+            Controls.Add(radioButton_16MIB);
+            Controls.Add(radioButton_8MIB);
+            Controls.Add(label2);
             Controls.Add(button11);
             Controls.Add(button10);
             Controls.Add(button9);
@@ -236,5 +285,9 @@
         private Button button10;
         public Button button1;
         private Button button11;
+        private Label label2;
+        private RadioButton radioButton_8MIB;
+        private RadioButton radioButton_16MIB;
+        private RadioButton radioButton_32MIB;
     }
 }

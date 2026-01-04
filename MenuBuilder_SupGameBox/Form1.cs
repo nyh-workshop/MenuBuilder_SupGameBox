@@ -18,6 +18,11 @@ namespace MenuBuilder_SupGameBox
         public System.Windows.Forms.ToolTip tt_b3 = new System.Windows.Forms.ToolTip();
         public System.Windows.Forms.ToolTip tt_b4 = new System.Windows.Forms.ToolTip();
 
+        const int START_CUSTOMROM_ADDR = 0x90000;
+        const int MAPPER_0 = 0x00;
+        const int MAPPER_MMC3 = 0x04;
+        const int BANK_8KB_SIZE_BYTES = 0x2000;
+
         enum GameProperties
         {
             TITLE = 0,
@@ -373,6 +378,7 @@ namespace MenuBuilder_SupGameBox
 
                     bWriteStream.BaseStream.Seek(0, 0);
 
+                    // Todo: Add 8, 16 or 32 MiB there:
                     // Fill with 8 megabytes minimum:
                     for (int j = 0; j < 0x7fffff; j++)
                     {
@@ -405,15 +411,15 @@ namespace MenuBuilder_SupGameBox
                     {
                         bWriteStream.BaseStream.Seek(0, 0);
 
-                        // All the apps are at after physical address 0x90000!
-                        if (CHR_startAddr < 0x90000 || PRG_startAddr < 0x90000)
+                        // All the apps are at after physical address for the custom rom, example: 0x90000!
+                        if (CHR_startAddr < START_CUSTOMROM_ADDR || PRG_startAddr < START_CUSTOMROM_ADDR)
                         {
                             MessageBox.Show("Oops! Addresses must be 0x90000 onwards!", "Error");
                             return;
                         }
 
-                        int CHR_relative_location = CHR_startAddr - 0x90000;
-                        int PRG_relative_location = PRG_startAddr - 0x90000;
+                        int CHR_relative_location = CHR_startAddr - START_CUSTOMROM_ADDR;
+                        int PRG_relative_location = PRG_startAddr - START_CUSTOMROM_ADDR;
 
                         bWriteStream.BaseStream.Seek(0, 0);
                         bWriteStream.BaseStream.Seek(CHR_relative_location, 0);
@@ -580,23 +586,38 @@ namespace MenuBuilder_SupGameBox
 
         private void button11_Click(object sender, EventArgs e)
         {
-            // Todo: Auto Populate OneBus games.
-            // Todo: Also PhyROM_addr must advance!
             // Supported Mapper 0 and MMC3 only!
-            // This needs also a free space bitmap.
-            // Subitems 4 and 5: Start CHR and  Start PRG.
-            const int MAPPER_0 = 0x00;
-            const int MAPPER_MMC3 = 0x04;
+            // Mapper 0 games are at lower half of the total ROM size,
+            // and MMC 3 are at the upper half of the total ROM size.
+            // Subitems 4 and 5: Start CHR and Start PRG.
+            int TOTAL_ROM_SIZE_BYTES = 0x800000; // Default at lowest 8MiB!!
+
+            if (radioButton_8MIB.Checked)
+            {
+                TOTAL_ROM_SIZE_BYTES = 0x800000;
+            }
+            else if (radioButton_16MIB.Checked)
+            {
+                TOTAL_ROM_SIZE_BYTES = 0x1000000;
+            }
+            else if (radioButton_32MIB.Checked)
+            {
+                TOTAL_ROM_SIZE_BYTES = 0x2000000;
+            }
             
-            const int BANK_8KB_SIZE_BYTES = 0x2000;
-            const int TOTAL_ROM_SIZE_BYTES = 0x800000;
             //const int TOTAL_8MB_ROM_SIZE_BYTES = 0x800000;
 
-            const int NUM_OF_BITS = TOTAL_ROM_SIZE_BYTES / BANK_8KB_SIZE_BYTES;
-            int START_CUSTOMROM_ADDR = 0x90000;
+            int NUM_OF_BITS = TOTAL_ROM_SIZE_BYTES / BANK_8KB_SIZE_BYTES;
+            int NUM_OF_BITS_HALF = NUM_OF_BITS / 2;
 
-            bool[] freeSpaceBitmap = new bool[NUM_OF_BITS];
+            // Note: One bit of this bitmap represents 8KiB!
+            // FreeSpace Bitmap for Mapper 0 Games:
+            bool[] freeSpaceBitmap = new bool[NUM_OF_BITS_HALF];
             Array.Fill(freeSpaceBitmap, false);
+
+            // FreeSpace Bitmap for Mapper 4 (MMC3) Games:
+            bool[] freeSpaceBitmap_MMC3 = new bool[NUM_OF_BITS_HALF];
+            Array.Fill(freeSpaceBitmap_MMC3, false);
 
             try
             {
@@ -611,17 +632,67 @@ namespace MenuBuilder_SupGameBox
                     OneBusRegisters obr = default;
 
                     int PRG_size = Convert.ToInt32(i.SubItems[(int)GameProperties.PRG_SIZE].Text, 10);
+                    int CHR_size = Convert.ToInt32(i.SubItems[(int)GameProperties.CHR_SIZE].Text, 10);
                     int mapper = Convert.ToInt32(i.SubItems[(int)GameProperties.MAPPER].Text, 10);
                     int HMVM = Convert.ToInt32(i.SubItems[(int)GameProperties.HM_VM].Text, 10);
-                    
+                    int MMC3_StepSize = 0;
+
+                    // Check Mapper 4 (MMC3):
+                    if (mapper == MAPPER_MMC3)
+                    {
+                        // These have to be calculated together with CHR and PRG
+                        // instead of separately like the Mapper 0!
+
+                        // For 128KiB PRG + 128KiB CHR, reserve 256KiB space:
+                        if (PRG_size == 0x20000 && CHR_size == 0x20000)
+                        {
+                            MMC3_StepSize = (PRG_size / BANK_8KB_SIZE_BYTES) * 2;
+                        }
+
+                        for (int j = 0; j < NUM_OF_BITS_HALF; j += MMC3_StepSize)
+                        {
+                            var takeNbits = freeSpaceBitmap_MMC3.Skip(j).Take(MMC3_StepSize);
+
+                            bool[] bitsToCompare_NotFilledSpace = new bool[MMC3_StepSize];
+                            Array.Fill(bitsToCompare_NotFilledSpace, false);
+
+                            int MMC3_endBlockAddr = 0;
+
+                            // For MMC3 all the address will start at the top half ROM:
+                            int TOTAL_ROM_UPPER_HALF = (TOTAL_ROM_SIZE_BYTES / 2);
+
+                            if (takeNbits.SequenceEqual(bitsToCompare_NotFilledSpace))
+                            {
+                                // Rename adjAddrAlign -> this is an end address for that reserved block!
+                                MMC3_endBlockAddr = ((j + MMC3_StepSize) * BANK_8KB_SIZE_BYTES) + TOTAL_ROM_UPPER_HALF;
+
+                                // Fill the occupied bits and place the PRG + CHR within that address range.
+                                bool[] filledSpaceBits = new bool[MMC3_StepSize];
+                                Array.Fill(filledSpaceBits, true);
+                                Array.Copy(filledSpaceBits, 0, freeSpaceBitmap_MMC3, j, MMC3_StepSize);
+
+                                int MMC3_PRG_beginBlockAddr = MMC3_endBlockAddr - 0x20000;
+                                int MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr - 0x20000;
+
+                                i.SubItems[(int)GameProperties.STRT_PRG].Text = "0x" + (MMC3_PRG_beginBlockAddr).ToString("X4");
+                                i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + (MMC3_CHR_beginBlockAddr).ToString("X4");
+
+                                CalcOneBus_PRG(ref obr, MMC3_PRG_beginBlockAddr, mapper, HMVM, PRG_size);
+                                CalcOneBus_CHR(ref obr, MMC3_CHR_beginBlockAddr, mapper, CHR_size);
+
+                                i.SubItems[(int)GameProperties.ONEBUS_REGS].Text = obr.ToString();
+                                break;
+                            }
+                        }
+                    }
                     // Check Mapper 0:
-                    if (mapper == MAPPER_0)
+                    else if (mapper == MAPPER_0)
                     {
                         // PRG:
                         // Check each empty space in the free space bitmap.
                         // It must have 4-bits with false.
-                        // Mapper 0: Find the nearest 64k block. If found, fill in the last 32k inside the 64k block.
-                        for (int j = 0; j < NUM_OF_BITS; j += 8)
+                        // Mapper 0: Find the nearest 64KiB block. If found, fill in the last 32k inside the 64k block.
+                        for (int j = 0; j < NUM_OF_BITS_HALF; j += 8)
                         {
                             // Equivalent to Python's freeSpaceBitmap[j+4:j+7] ->
                             var take4bits = freeSpaceBitmap.Skip(j + 4).Take(4);
@@ -635,8 +706,8 @@ namespace MenuBuilder_SupGameBox
                             {
                                 // Console.WriteLine("found one empty space for PRG {0}", g[i].gameName);
                                 // Console.WriteLine("physical ROM address: {0:X} - {1:X}", (j + 4) * BANK_8KB_SIZE_BYTES, (j + 8) * BANK_8KB_SIZE_BYTES);
-                                
-                                switch(PRG_size)
+
+                                switch (PRG_size)
                                 {
                                     // 16K games are aligned to 0xC000-0xFFFF:
                                     case 0x4000:
@@ -650,7 +721,7 @@ namespace MenuBuilder_SupGameBox
                                         // Todo: Raise exception here for non-standard sizes!
                                         break;
                                 }
-                                
+
                                 // Fill the 4 bits and place the PRG within that address range.
                                 bool[] filledSpaceBits = new bool[4];
                                 Array.Fill(filledSpaceBits, true);
@@ -665,7 +736,7 @@ namespace MenuBuilder_SupGameBox
                         // CHR:
                         // Check each empty space in the free space bitmap.
                         // Mapper 0: Find the nearest 8k block. If found, fill in that one.
-                        for (int j = 0; j < NUM_OF_BITS; j++)
+                        for (int j = 0; j < NUM_OF_BITS_HALF; j++)
                         {
                             var take1bit = freeSpaceBitmap[j];
 
@@ -677,7 +748,7 @@ namespace MenuBuilder_SupGameBox
 
                                 freeSpaceBitmap[j] = true;
                                 // Set OneBus values here!
-                                CalcOneBus_CHR(ref obr, (j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR, mapper);
+                                CalcOneBus_CHR(ref obr, (j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR, mapper, CHR_size);
                                 break;
                             }
                         }
@@ -699,8 +770,7 @@ namespace MenuBuilder_SupGameBox
             {
                 MessageBox.Show("Oops! Error populating list!", "Error");
                 return;
-            };
-
+            }
         }
 
         public struct OneBusRegisters
@@ -752,9 +822,33 @@ namespace MenuBuilder_SupGameBox
 
         private static void CalcOneBus_PRG(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper, int a_HMVM, int aPRGsize)
         {
+            // For this time, MMC3 games must be placed on the other half of the custom ROM!
+            if (mapper == MAPPER_MMC3)
+            {
+                // PRG: 128KiB, 256KiB, 512KiB
+                a_Obr.R4100 = (phyROM_Addr / 0x200000) << 4;
+                a_Obr.R410A = (phyROM_Addr & 0x1F0000) >> 13;
+                if ((a_HMVM & 0x1) == 0)
+                    a_Obr.R4106 |= 0x01;
+                else
+                    a_Obr.R4106 &= ~0x01;
+                a_Obr.R4106 |= 0x01;
+
+                switch (aPRGsize)
+                {
+                    case 0x20000:
+                        a_Obr.R4107 = 0x00;
+                        a_Obr.R4108 = 0x01;
+                        a_Obr.R410B = 0x02;
+                        break;
+                    default:
+                        // Todo: Raise exception here for non-standard sizes!
+                        break;
+                }
+            }
             // Mapper 0 covers 64KB at PRG.
             // All the banks started at 0x8000.
-            if (mapper == 0x00)
+            else if (mapper == MAPPER_0)
             {
                 a_Obr.R4100 = (phyROM_Addr / 0x200000) << 4;
                 a_Obr.R410A = (phyROM_Addr & 0x1F0000) >> 13;
@@ -779,12 +873,50 @@ namespace MenuBuilder_SupGameBox
                     default:
                         // Todo: Raise exception here for non-standard sizes!
                         break;
-                }                
+                }
             }
         }
-        private static void CalcOneBus_CHR(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper)
+        private static void CalcOneBus_CHR(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper, int aCHRsize)
         {
-            if (mapper == 0x00)
+            // Should factor in the lower 4-bits in the R4100!
+            int R4100_lower = (phyROM_Addr / 0x200000) & 0x0f;
+            a_Obr.R4100 |= R4100_lower;
+
+            if (mapper == MAPPER_MMC3)
+            {
+                // Need to improve readability here!!
+                a_Obr.R2018 = ((phyROM_Addr % 0x200000) / 0x40000) << 4;
+
+                // Need to check common CHR sizes:
+                // 128KiB and 256KiBs there included!
+                if (aCHRsize == 0x20000)
+                    a_Obr.R201A |= 0x01;
+                else if (aCHRsize == 0x40000)
+                    a_Obr.R201A &= ~0x01;
+
+                int upperNibble_2012_2017 = ((phyROM_Addr % 0x200000) % 0x40000) / 0x4000;
+                int lowerNibble_2012_2017 = ((phyROM_Addr % 0x200000) % 0x40000) % 0x4000;
+
+                if (lowerNibble_2012_2017 > 0)
+                {
+                    a_Obr.R2012 = 0x0c | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2013 = 0x0d | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2014 = 0x0e | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2015 = 0x0f | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2016 = 0x08 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2017 = 0x0a | (upperNibble_2012_2017 << 4);
+                }
+                else
+                {
+                    a_Obr.R2012 = 0x04 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2013 = 0x05 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2014 = 0x06 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2015 = 0x07 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2016 = 0x00 | (upperNibble_2012_2017 << 4);
+                    a_Obr.R2017 = 0x02 | (upperNibble_2012_2017 << 4);
+                }
+            }
+            else if (mapper == MAPPER_0)
             {
                 a_Obr.R2018 = ((phyROM_Addr % 0x200000) / 0x40000) << 4;
 

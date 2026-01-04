@@ -34,17 +34,17 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(12, 7);
+            textBox1.Location = new Point(14, 8);
             textBox1.Name = "textBox1";
-            textBox1.Size = new Size(483, 25);
+            textBox1.Size = new Size(551, 26);
             textBox1.TabIndex = 0;
             // 
             // button1
             // 
             button1.DialogResult = DialogResult.OK;
-            button1.Location = new Point(501, 9);
+            button1.Location = new Point(573, 10);
             button1.Name = "button1";
-            button1.Size = new Size(75, 23);
+            button1.Size = new Size(86, 26);
             button1.TabIndex = 1;
             button1.Text = "OK";
             button1.UseVisualStyleBackColor = true;
@@ -52,9 +52,9 @@
             // Form3
             // 
             AcceptButton = button1;
-            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(583, 44);
+            ClientSize = new Size(673, 49);
             ControlBox = false;
             Controls.Add(button1);
             Controls.Add(textBox1);
