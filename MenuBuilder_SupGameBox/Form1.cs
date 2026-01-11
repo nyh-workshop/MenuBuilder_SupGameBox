@@ -642,11 +642,21 @@ namespace MenuBuilder_SupGameBox
                     {
                         // These have to be calculated together with CHR and PRG
                         // instead of separately like the Mapper 0!
+                        int MMC3_StepSizeInBytes = 0;
 
                         // For 128KiB PRG + 128KiB CHR, reserve 256KiB space:
                         if (PRG_size == 0x20000 && CHR_size == 0x20000)
                         {
                             MMC3_StepSize = (PRG_size / BANK_8KB_SIZE_BYTES) * 2;
+                            MMC3_StepSizeInBytes = 0x20000;
+                        }
+                        // For 256/128 or 128/256 or 256/256, reserve 512KiB space:
+                        else if ((PRG_size == 0x40000 && CHR_size == 0x20000) ||
+                            (PRG_size == 0x20000 && CHR_size == 0x40000) ||
+                            (PRG_size == 0x40000 && CHR_size == 0x40000))
+                        {
+                            MMC3_StepSize = (PRG_size / BANK_8KB_SIZE_BYTES) * 2;
+                            MMC3_StepSizeInBytes = 0x40000;
                         }
 
                         for (int j = 0; j < NUM_OF_BITS_HALF; j += MMC3_StepSize)
@@ -671,8 +681,8 @@ namespace MenuBuilder_SupGameBox
                                 Array.Fill(filledSpaceBits, true);
                                 Array.Copy(filledSpaceBits, 0, freeSpaceBitmap_MMC3, j, MMC3_StepSize);
 
-                                int MMC3_PRG_beginBlockAddr = MMC3_endBlockAddr - 0x20000;
-                                int MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr - 0x20000;
+                                int MMC3_PRG_beginBlockAddr = MMC3_endBlockAddr - MMC3_StepSizeInBytes;
+                                int MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr - MMC3_StepSizeInBytes;
 
                                 i.SubItems[(int)GameProperties.STRT_PRG].Text = "0x" + (MMC3_PRG_beginBlockAddr).ToString("X4");
                                 i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + (MMC3_CHR_beginBlockAddr).ToString("X4");
@@ -832,7 +842,6 @@ namespace MenuBuilder_SupGameBox
                     a_Obr.R4106 |= 0x01;
                 else
                     a_Obr.R4106 &= ~0x01;
-                a_Obr.R4106 |= 0x01;
 
                 switch (aPRGsize)
                 {
@@ -840,6 +849,11 @@ namespace MenuBuilder_SupGameBox
                         a_Obr.R4107 = 0x00;
                         a_Obr.R4108 = 0x01;
                         a_Obr.R410B = 0x02;
+                        break;
+                    case 0x40000:
+                        a_Obr.R4107 = 0x00;
+                        a_Obr.R4108 = 0x01;
+                        a_Obr.R410B = 0x01;
                         break;
                     default:
                         // Todo: Raise exception here for non-standard sizes!
