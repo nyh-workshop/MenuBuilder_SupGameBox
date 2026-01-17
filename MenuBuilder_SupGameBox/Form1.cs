@@ -23,6 +23,8 @@ namespace MenuBuilder_SupGameBox
         const int MAPPER_MMC3 = 0x04;
         const int BANK_8KB_SIZE_BYTES = 0x2000;
 
+        int TOTAL_ROM_SIZE_BYTES = 0x800000; // Default at lowest 8MiB!!
+
         enum GameProperties
         {
             TITLE = 0,
@@ -380,7 +382,7 @@ namespace MenuBuilder_SupGameBox
 
                     // Todo: Add 8, 16 or 32 MiB there:
                     // Fill with 8 megabytes minimum:
-                    for (int j = 0; j < 0x7fffff; j++)
+                    for (int j = 0; j < (TOTAL_ROM_SIZE_BYTES - 1); j++)
                     {
                         bWriteStream.Write(emptyByte);
                     }
@@ -590,7 +592,6 @@ namespace MenuBuilder_SupGameBox
             // Mapper 0 games are at lower half of the total ROM size,
             // and MMC 3 are at the upper half of the total ROM size.
             // Subitems 4 and 5: Start CHR and Start PRG.
-            int TOTAL_ROM_SIZE_BYTES = 0x800000; // Default at lowest 8MiB!!
 
             if (radioButton_8MIB.Checked)
             {
@@ -605,8 +606,6 @@ namespace MenuBuilder_SupGameBox
                 TOTAL_ROM_SIZE_BYTES = 0x2000000;
             }
             
-            //const int TOTAL_8MB_ROM_SIZE_BYTES = 0x800000;
-
             int NUM_OF_BITS = TOTAL_ROM_SIZE_BYTES / BANK_8KB_SIZE_BYTES;
             int NUM_OF_BITS_HALF = NUM_OF_BITS / 2;
 
@@ -643,11 +642,11 @@ namespace MenuBuilder_SupGameBox
                         // These have to be calculated together with CHR and PRG
                         // instead of separately like the Mapper 0!
                         int MMC3_StepSizeInBytes = 0;
+                        MMC3_StepSize = (PRG_size / BANK_8KB_SIZE_BYTES) * 2;
 
                         // For 128KiB PRG + 128KiB CHR, reserve 256KiB space:
                         if (PRG_size == 0x20000 && CHR_size == 0x20000)
-                        {
-                            MMC3_StepSize = (PRG_size / BANK_8KB_SIZE_BYTES) * 2;
+                        {                            
                             MMC3_StepSizeInBytes = 0x20000;
                         }
                         // For 256/128 or 128/256 or 256/256, reserve 512KiB space:
@@ -655,8 +654,12 @@ namespace MenuBuilder_SupGameBox
                             (PRG_size == 0x20000 && CHR_size == 0x40000) ||
                             (PRG_size == 0x40000 && CHR_size == 0x40000))
                         {
-                            MMC3_StepSize = (PRG_size / BANK_8KB_SIZE_BYTES) * 2;
                             MMC3_StepSizeInBytes = 0x40000;
+                        }
+                        // For 512KiB PRG space and beyond, reserve entire 1MiB space:
+                        else if ((PRG_size == 0x80000))
+                        {
+                            MMC3_StepSizeInBytes = 0x80000;
                         }
 
                         for (int j = 0; j < NUM_OF_BITS_HALF; j += MMC3_StepSize)
@@ -854,6 +857,11 @@ namespace MenuBuilder_SupGameBox
                         a_Obr.R4107 = 0x00;
                         a_Obr.R4108 = 0x01;
                         a_Obr.R410B = 0x01;
+                        break;
+                    case 0x80000:
+                        a_Obr.R4107 = 0x00;
+                        a_Obr.R4108 = 0x01;
+                        a_Obr.R410B = 0x00;
                         break;
                     default:
                         // Todo: Raise exception here for non-standard sizes!

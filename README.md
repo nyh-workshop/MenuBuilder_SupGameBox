@@ -8,8 +8,9 @@ To successfully build the menu, you need to get some knowledge on how the unit w
 
 ![image](https://github.com/user-attachments/assets/5a8df030-2f2d-4d86-8eb2-b139600e546e)
 
-## New feature: Partial support for Mapper 4 (MMC3) with CHR+PRG 128KiB+128KiB!
+## New feature: Support for Mapper 4 (MMC3) with CHR+PRG 128KiB+128KiB, 256/256, 256/128 and 512/256!
 ## Note - this functionality is still very janky and more effort needed to refine it!
+## Caution! Currently there is no check to see if the memory is full or not!
 
 ### You also need these:
 - [CC65](https://cc65.github.io/) installed and path set.
