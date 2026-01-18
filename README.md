@@ -1,6 +1,6 @@
 # MenuBuilder_SupGameBox
 
-## *Caution: This app is not refined yet! Some of the instructions might be unclear!*
+## *Caution: This app is not refined yet!*
 
 ## Custom menu builder for Sup Game Box 400-in-1. Requires actual ROM image!
 
@@ -8,8 +8,8 @@ To successfully build the menu, you need to get some knowledge on how the unit w
 
 ![image](https://github.com/user-attachments/assets/5a8df030-2f2d-4d86-8eb2-b139600e546e)
 
-## New feature: Support for Mapper 4 (MMC3) with CHR+PRG 128KiB+128KiB, 256/256, 256/128 and 512/256!
-## Note - this functionality is still very janky and more effort needed to refine it!
+## New feature: Support for Mapper 4 (MMC3) with CHR+PRG 128KiB+128KiB, 256/256, 256/128, 512/256 and CHR-RAM!
+## Note - this functionality is still very janky and experimental!!
 ## Caution! Currently there is no check to see if the memory is full or not!
 
 ### You also need these:
@@ -20,7 +20,7 @@ To successfully build the menu, you need to get some knowledge on how the unit w
 
 ### Directions for Automatic Entry (currently only Mapper 0 games supported, partial support for Mapper 4 (MMC3) games):
 - Run this menu builder app. Supply the template menu folder link into the "Build Folder".
-- Add NES games (**only Mapper 0 games and Mapper 4 games (128KiB + 128KiB) supported now on automatic entry!**) inside by pressing **Add Item**. You can move items up and down in the list!
+- Add NES games (**only Mapper 0 games and most Mapper 4 games supported now on automatic entry!**) inside by pressing **Add Item**. You can move items up and down in the list!
 - Just click on **"Auto Populate OneBus"** to automatically calculate the CHR, PRG addresses and the OneBus registers! No need to do other things!
 - Finally, press "Compile". When it is successful, go to the cmd and run "make". The make will compile the menu, and combine the apps into the main binary.
 - Run this output_final.bin with an emulator such as EmuVT 1.36.

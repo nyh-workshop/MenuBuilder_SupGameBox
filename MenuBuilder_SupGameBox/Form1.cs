@@ -635,6 +635,7 @@ namespace MenuBuilder_SupGameBox
                     int mapper = Convert.ToInt32(i.SubItems[(int)GameProperties.MAPPER].Text, 10);
                     int HMVM = Convert.ToInt32(i.SubItems[(int)GameProperties.HM_VM].Text, 10);
                     int MMC3_StepSize = 0;
+                    bool isUsingCHR_RAM = false;
 
                     // Check Mapper 4 (MMC3):
                     if (mapper == MAPPER_MMC3)
@@ -660,6 +661,17 @@ namespace MenuBuilder_SupGameBox
                         else if ((PRG_size == 0x80000))
                         {
                             MMC3_StepSizeInBytes = 0x80000;
+                        }
+                        // Games with CHR-RAM is very tricky - work in progress to get this right!
+                        else if ((PRG_size == 0x20000) && (CHR_size == 0x0000))
+                        {
+                            MMC3_StepSizeInBytes = 0x20000;
+                            isUsingCHR_RAM = true;
+                        }
+                        else if ((PRG_size == 0x40000) && (CHR_size == 0x0000))
+                        {
+                            MMC3_StepSizeInBytes = 0x40000;
+                            isUsingCHR_RAM = true;
                         }
 
                         for (int j = 0; j < NUM_OF_BITS_HALF; j += MMC3_StepSize)
@@ -687,12 +699,21 @@ namespace MenuBuilder_SupGameBox
                                 int MMC3_PRG_beginBlockAddr = MMC3_endBlockAddr - MMC3_StepSizeInBytes;
                                 int MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr - MMC3_StepSizeInBytes;
 
+                                CalcOneBus_PRG(ref obr, MMC3_PRG_beginBlockAddr, mapper, HMVM, PRG_size);
+                                if (!isUsingCHR_RAM)
+                                    CalcOneBus_CHR(ref obr, MMC3_CHR_beginBlockAddr, mapper, CHR_size);
+                                else
+                                {
+                                    // From the experimentation:https://hackaday.io/project/175322-dissecting-a-hand-held-noac-console-sup-400-in-1/log/233014-more-testings-on-different-nes-games
+                                    // Putting values from 0x04 and 0x0F in the lower nibble of the R4100 register will make the game work normally!
+                                    // Inside that Sup 400-in-1 these are often set at 0x08, so I'll just follow whatever it does!
+                                    // Note: these runs well in EmuVT 1.36, doesn't work very good in FCEUX emulator.
+                                    MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr;
+                                    obr.R4100 |= 0x08;
+                                }
+
                                 i.SubItems[(int)GameProperties.STRT_PRG].Text = "0x" + (MMC3_PRG_beginBlockAddr).ToString("X4");
                                 i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + (MMC3_CHR_beginBlockAddr).ToString("X4");
-
-                                CalcOneBus_PRG(ref obr, MMC3_PRG_beginBlockAddr, mapper, HMVM, PRG_size);
-                                CalcOneBus_CHR(ref obr, MMC3_CHR_beginBlockAddr, mapper, CHR_size);
-
                                 i.SubItems[(int)GameProperties.ONEBUS_REGS].Text = obr.ToString();
                                 break;
                             }
@@ -937,6 +958,7 @@ namespace MenuBuilder_SupGameBox
                     a_Obr.R2016 = 0x00 | (upperNibble_2012_2017 << 4);
                     a_Obr.R2017 = 0x02 | (upperNibble_2012_2017 << 4);
                 }
+
             }
             else if (mapper == MAPPER_0)
             {
