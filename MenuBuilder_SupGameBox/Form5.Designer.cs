@@ -1,6 +1,6 @@
 ﻿namespace MenuBuilder_SupGameBox
 {
-    partial class Form2
+    partial class Form5
     {
         /// <summary>
         /// Required designer variable.
@@ -28,50 +28,45 @@
         /// </summary>
         private void InitializeComponent()
         {
-            textBox1 = new TextBox();
+            richTextBox1 = new RichTextBox();
             button1 = new Button();
             SuspendLayout();
             // 
-            // textBox1
+            // richTextBox1
             // 
-            textBox1.Location = new Point(14, 13);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(271, 26);
-            textBox1.TabIndex = 0;
+            richTextBox1.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            richTextBox1.Location = new Point(-2, 0);
+            richTextBox1.Name = "richTextBox1";
+            richTextBox1.ReadOnly = true;
+            richTextBox1.Size = new Size(802, 414);
+            richTextBox1.TabIndex = 0;
+            richTextBox1.Text = "";
             // 
             // button1
             // 
-            button1.DialogResult = DialogResult.OK;
-            button1.Location = new Point(293, 13);
+            button1.Location = new Point(376, 420);
             button1.Name = "button1";
-            button1.Size = new Size(74, 28);
+            button1.Size = new Size(75, 23);
             button1.TabIndex = 1;
             button1.Text = "OK";
             button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
-            // Form2
+            // Form5
             // 
-            AcceptButton = button1;
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(376, 51);
+            ClientSize = new Size(800, 450);
             Controls.Add(button1);
-            Controls.Add(textBox1);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            Name = "Form2";
-            ShowIcon = false;
-            ShowInTaskbar = false;
-            Text = "Change Title";
-            KeyDown += Form2_KeyDown;
+            Controls.Add(richTextBox1);
+            Name = "Form5";
+            Text = "Generate ROM status";
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
-        private TextBox textBox1;
+        private RichTextBox richTextBox1;
         private Button button1;
     }
 }

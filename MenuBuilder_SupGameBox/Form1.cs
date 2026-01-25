@@ -1,6 +1,9 @@
+using Microsoft.VisualBasic.FileIO;
+using System;
+using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Security.Cryptography;
-using Microsoft.VisualBasic.FileIO;
+using System.Windows.Forms;
 
 namespace MenuBuilder_SupGameBox
 {
@@ -59,31 +62,7 @@ namespace MenuBuilder_SupGameBox
         {
             public static string buildLocation;
         }
-
-        private void addTestItemsListView1()
-        {
-            var abc = new ListViewItem();
-            abc.Text = "Game1";
-            abc.SubItems.Add("100");
-            abc.SubItems.Add("200");
-            abc.SubItems.Add("300");
-            listView1.Items.Add(abc);
-
-            var ghi = new ListViewItem();
-            ghi.Text = "Game2";
-            ghi.SubItems.Add("200");
-            ghi.SubItems.Add("300");
-            ghi.SubItems.Add("400");
-            listView1.Items.Add(ghi);
-
-            var jkl = new ListViewItem();
-            jkl.Text = "Game3";
-            jkl.SubItems.Add("400");
-            jkl.SubItems.Add("500");
-            jkl.SubItems.Add("600");
-            listView1.Items.Add(jkl);
-        }
-
+                
         // Reference: https://stackoverflow.com/questions/59398402/listview-move-item-with-up-and-down-button-net-framework
         private void button1_Click(object sender, EventArgs e)
         {
@@ -223,8 +202,7 @@ namespace MenuBuilder_SupGameBox
             f2.Dispose();
         }
 
-
-        private void button5_Click(object sender, EventArgs e)
+        public bool CompileMenu()
         {
             // Compile the final binary file!
             // 1. Fill the configuration array, and then determine the locations.
@@ -236,7 +214,13 @@ namespace MenuBuilder_SupGameBox
             if (!Path.Exists(MyGlobals.buildLocation))
             {
                 MessageBox.Show("Oops! Build path invalid!", "Error");
-                return;
+                return false;
+            }
+
+            if (listView1.Items.Count == 0)
+            {
+                MessageBox.Show("Oops! Please fill in some games first!", "Error");
+                return false;
             }
 
             try
@@ -319,7 +303,7 @@ namespace MenuBuilder_SupGameBox
             catch (Exception Ex)
             {
                 MessageBox.Show("Oops! Error when writing to AppList.c!", "Error");
-                return;
+                return false;
             }
 
             try
@@ -362,7 +346,7 @@ namespace MenuBuilder_SupGameBox
             catch (Exception Ex)
             {
                 MessageBox.Show("Oops! Error when writing to AppList.h!", "Error");
-                return;
+                return false;
             }
 
             try
@@ -417,7 +401,7 @@ namespace MenuBuilder_SupGameBox
                         if (CHR_startAddr < START_CUSTOMROM_ADDR || PRG_startAddr < START_CUSTOMROM_ADDR)
                         {
                             MessageBox.Show("Oops! Addresses must be 0x90000 onwards!", "Error");
-                            return;
+                            return false;
                         }
 
                         int CHR_relative_location = CHR_startAddr - START_CUSTOMROM_ADDR;
@@ -435,10 +419,16 @@ namespace MenuBuilder_SupGameBox
             catch (Exception Ex)
             {
                 MessageBox.Show("Oops! Error when writing to App Binary!", "Error");
-                return;
+                return false;
             }
 
-            MessageBox.Show("Generate file success!", "Success!");
+            MessageBox.Show("Generate Menu success!", "Compile Menu");
+            return true;
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            CompileMenu();
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -605,7 +595,7 @@ namespace MenuBuilder_SupGameBox
             {
                 TOTAL_ROM_SIZE_BYTES = 0x2000000;
             }
-            
+
             int NUM_OF_BITS = TOTAL_ROM_SIZE_BYTES / BANK_8KB_SIZE_BYTES;
             int NUM_OF_BITS_HALF = NUM_OF_BITS / 2;
 
@@ -647,7 +637,7 @@ namespace MenuBuilder_SupGameBox
 
                         // For 128KiB PRG + 128KiB CHR, reserve 256KiB space:
                         if (PRG_size == 0x20000 && CHR_size == 0x20000)
-                        {                            
+                        {
                             MMC3_StepSizeInBytes = 0x20000;
                         }
                         // For 256/128 or 128/256 or 256/256, reserve 512KiB space:
@@ -695,6 +685,9 @@ namespace MenuBuilder_SupGameBox
                                 bool[] filledSpaceBits = new bool[MMC3_StepSize];
                                 Array.Fill(filledSpaceBits, true);
                                 Array.Copy(filledSpaceBits, 0, freeSpaceBitmap_MMC3, j, MMC3_StepSize);
+
+                                if (MMC3_endBlockAddr >= TOTAL_ROM_SIZE_BYTES)
+                                    throw new ApplicationException("Oooops! Exceeding total ROM size for Mapper 4!");
 
                                 int MMC3_PRG_beginBlockAddr = MMC3_endBlockAddr - MMC3_StepSizeInBytes;
                                 int MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr - MMC3_StepSizeInBytes;
@@ -752,7 +745,7 @@ namespace MenuBuilder_SupGameBox
                                         adjAddrAlign = ((j + 4) * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR;
                                         break;
                                     default:
-                                        // Todo: Raise exception here for non-standard sizes!
+                                        throw new ApplicationException("Non standard PRG size for Mapper 0!!");
                                         break;
                                 }
 
@@ -760,6 +753,11 @@ namespace MenuBuilder_SupGameBox
                                 bool[] filledSpaceBits = new bool[4];
                                 Array.Fill(filledSpaceBits, true);
                                 Array.Copy(filledSpaceBits, 0, freeSpaceBitmap, j + 4, 4);
+
+                                // Todo: This should calculate the end address for Mapper 0 CHR and PRG!
+                                if (adjAddrAlign >= (TOTAL_ROM_SIZE_BYTES / 2))
+                                    throw new ApplicationException("Mapper 0 PRG exceeds total ROM size!");
+
                                 // Set OneBus values here!
                                 // After calculate stick this into the OneBus value! :D
                                 i.SubItems[(int)GameProperties.STRT_PRG].Text = "0x" + (adjAddrAlign).ToString("X4");
@@ -778,8 +776,13 @@ namespace MenuBuilder_SupGameBox
                             {
                                 // Console.WriteLine("found one empty space for CHR {0}", g[i].gameName);
                                 // Console.WriteLine("physical ROM address: {0:X} - {1:X}", j * BANK_8KB_SIZE_BYTES, (j + 1) * BANK_8KB_SIZE_BYTES);
-                                i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + ((j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR).ToString("X4");
 
+                                // Todo: This should calculate the end address for Mapper 0 CHR and PRG!
+                                int chrStartAddr = (j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR;
+                                if (chrStartAddr >= (TOTAL_ROM_SIZE_BYTES / 2))
+                                    throw new ApplicationException("Mapper 0 CHR exceeds total ROM size!");
+
+                                i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + (chrStartAddr).ToString("X4");
                                 freeSpaceBitmap[j] = true;
                                 // Set OneBus values here!
                                 CalcOneBus_CHR(ref obr, (j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR, mapper, CHR_size);
@@ -791,7 +794,7 @@ namespace MenuBuilder_SupGameBox
                     }
                     else
                     {
-                        throw new ApplicationException("Mapper 0 games only supported!");
+                        throw new ApplicationException("Mapper 0 and 4 games only supported!");
                     }
                 }
             }
@@ -985,6 +988,46 @@ namespace MenuBuilder_SupGameBox
                     a_Obr.R2016 = 0x00 | (upperNibble_2012_2017 << 4);
                     a_Obr.R2017 = 0x02 | (upperNibble_2012_2017 << 4);
                 }
+            }
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            // Generate ROM here. Need the:
+            // 1. Make.
+            // 2. CC65 installed.
+            // 3. That menu folder, and you are inside the folder, along with the original ROM.
+
+             // Generate ROM when Compile Menu is success:
+            if (!CompileMenu())
+            {
+                return;
+            }
+
+            try
+            {
+                string folderPath = textBox1.Text;
+                if (!Directory.Exists(folderPath))
+                {
+                    throw new Exception("Oops! No menu folder or error!");
+                }
+
+                Environment.CurrentDirectory = (folderPath);
+
+                Form5 f5 = new Form5();
+                f5.ShowDialog();
+                f5.Dispose();
+                
+            }
+            catch (ApplicationException ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Oops! No menu folder or error!");
+                return;
             }
         }
     }

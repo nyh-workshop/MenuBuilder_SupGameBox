@@ -47,6 +47,7 @@
             radioButton_8MIB = new RadioButton();
             radioButton_16MIB = new RadioButton();
             radioButton_32MIB = new RadioButton();
+            button12 = new Button();
             SuspendLayout();
             // 
             // listView1
@@ -56,7 +57,7 @@
             listView1.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             listView1.Location = new Point(14, 44);
             listView1.Name = "listView1";
-            listView1.Size = new Size(1004, 286);
+            listView1.Size = new Size(1136, 286);
             listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.MouseDoubleClick += listView1_MouseDoubleClick;
@@ -111,11 +112,11 @@
             // 
             // button5
             // 
-            button5.Location = new Point(909, 336);
+            button5.Location = new Point(908, 336);
             button5.Name = "button5";
             button5.Size = new Size(110, 59);
             button5.TabIndex = 4;
-            button5.Text = "Compile!";
+            button5.Text = "Compile Menu!";
             button5.UseVisualStyleBackColor = true;
             button5.Click += button5_Click;
             // 
@@ -168,7 +169,7 @@
             // 
             // button9
             // 
-            button9.Location = new Point(800, 9);
+            button9.Location = new Point(932, 10);
             button9.Name = "button9";
             button9.Size = new Size(102, 26);
             button9.TabIndex = 8;
@@ -178,7 +179,7 @@
             // 
             // button10
             // 
-            button10.Location = new Point(909, 9);
+            button10.Location = new Point(1040, 10);
             button10.Name = "button10";
             button10.Size = new Size(110, 26);
             button10.TabIndex = 9;
@@ -237,11 +238,23 @@
             radioButton_32MIB.Text = "32";
             radioButton_32MIB.UseVisualStyleBackColor = true;
             // 
+            // button12
+            // 
+            button12.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button12.Location = new Point(1025, 336);
+            button12.Name = "button12";
+            button12.Size = new Size(125, 60);
+            button12.TabIndex = 14;
+            button12.Text = "Generate ROM!";
+            button12.UseVisualStyleBackColor = true;
+            button12.Click += button12_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1032, 409);
+            ClientSize = new Size(1162, 409);
+            Controls.Add(button12);
             Controls.Add(radioButton_32MIB);
             Controls.Add(radioButton_16MIB);
             Controls.Add(radioButton_8MIB);
@@ -289,5 +302,6 @@
         private RadioButton radioButton_8MIB;
         private RadioButton radioButton_16MIB;
         private RadioButton radioButton_32MIB;
+        private Button button12;
     }
 }
