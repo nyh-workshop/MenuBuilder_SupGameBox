@@ -755,7 +755,7 @@ namespace MenuBuilder_SupGameBox
                                 Array.Copy(filledSpaceBits, 0, freeSpaceBitmap, j + 4, 4);
 
                                 // Todo: This should calculate the end address for Mapper 0 CHR and PRG!
-                                if (adjAddrAlign >= (TOTAL_ROM_SIZE_BYTES / 2))
+                                if ((adjAddrAlign + PRG_size) >= (TOTAL_ROM_SIZE_BYTES / 2))
                                     throw new ApplicationException("Mapper 0 PRG exceeds total ROM size!");
 
                                 // Set OneBus values here!
@@ -779,7 +779,7 @@ namespace MenuBuilder_SupGameBox
 
                                 // Todo: This should calculate the end address for Mapper 0 CHR and PRG!
                                 int chrStartAddr = (j * BANK_8KB_SIZE_BYTES) + START_CUSTOMROM_ADDR;
-                                if (chrStartAddr >= (TOTAL_ROM_SIZE_BYTES / 2))
+                                if ((chrStartAddr + CHR_size) >= (TOTAL_ROM_SIZE_BYTES / 2))
                                     throw new ApplicationException("Mapper 0 CHR exceeds total ROM size!");
 
                                 i.SubItems[(int)GameProperties.STRT_CHR].Text = "0x" + (chrStartAddr).ToString("X4");
