@@ -652,6 +652,11 @@ namespace MenuBuilder_SupGameBox
                         {
                             MMC3_StepSizeInBytes = 0x80000;
                         }
+                        // For 32/32, reserve 32KiB space:
+                        else if ((PRG_size == 0x8000) && (CHR_size == 0x8000))
+                        {
+                            MMC3_StepSizeInBytes = 0x8000;
+                        }
                         // Games with CHR-RAM is very tricky - work in progress to get this right!
                         else if ((PRG_size == 0x20000) && (CHR_size == 0x0000))
                         {
@@ -862,9 +867,9 @@ namespace MenuBuilder_SupGameBox
             // For this time, MMC3 games must be placed on the other half of the custom ROM!
             if (mapper == MAPPER_MMC3)
             {
-                // PRG: 128KiB, 256KiB, 512KiB
+                // Covers PRG: 32KiB, 128KiB, 256KiB, 512KiB
                 a_Obr.R4100 = (phyROM_Addr / 0x200000) << 4;
-                a_Obr.R410A = (phyROM_Addr & 0x1F0000) >> 13;
+                a_Obr.R410A = (phyROM_Addr & 0x1F8000) >> 13;
                 if ((a_HMVM & 0x1) == 0)
                     a_Obr.R4106 |= 0x01;
                 else
@@ -872,6 +877,11 @@ namespace MenuBuilder_SupGameBox
 
                 switch (aPRGsize)
                 {
+                    case 0x8000:
+                        a_Obr.R4107 = 0x00;
+                        a_Obr.R4108 = 0x01;
+                        a_Obr.R410B = 0x04;
+                        break;
                     case 0x20000:
                         a_Obr.R4107 = 0x00;
                         a_Obr.R4108 = 0x01;
