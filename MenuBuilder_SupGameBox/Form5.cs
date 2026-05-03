@@ -41,6 +41,7 @@ namespace MenuBuilder_SupGameBox
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.UseShellExecute = false;
             proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.Arguments = "all";
             proc.StartInfo.FileName = "make.exe";
 
             proc.OutputDataReceived += new DataReceivedEventHandler((s, e) =>

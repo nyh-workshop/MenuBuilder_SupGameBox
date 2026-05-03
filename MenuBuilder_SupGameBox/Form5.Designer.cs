@@ -59,6 +59,7 @@
             ClientSize = new Size(800, 450);
             Controls.Add(button1);
             Controls.Add(richTextBox1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "Form5";
             Text = "Generate ROM status";
             ResumeLayout(false);

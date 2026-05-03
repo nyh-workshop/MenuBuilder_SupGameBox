@@ -112,7 +112,7 @@
             // 
             // button5
             // 
-            button5.Location = new Point(908, 336);
+            button5.Location = new Point(910, 342);
             button5.Name = "button5";
             button5.Size = new Size(110, 59);
             button5.TabIndex = 4;
@@ -122,7 +122,7 @@
             // 
             // button6
             // 
-            button6.Location = new Point(576, 336);
+            button6.Location = new Point(578, 342);
             button6.Name = "button6";
             button6.Size = new Size(129, 60);
             button6.TabIndex = 1;
@@ -132,7 +132,7 @@
             // 
             // button7
             // 
-            button7.Location = new Point(712, 336);
+            button7.Location = new Point(714, 342);
             button7.Name = "button7";
             button7.Size = new Size(190, 59);
             button7.TabIndex = 1;
@@ -189,7 +189,7 @@
             // 
             // button11
             // 
-            button11.Location = new Point(431, 336);
+            button11.Location = new Point(433, 342);
             button11.Name = "button11";
             button11.Size = new Size(141, 61);
             button11.TabIndex = 10;
@@ -241,7 +241,7 @@
             // button12
             // 
             button12.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button12.Location = new Point(1025, 336);
+            button12.Location = new Point(1027, 342);
             button12.Name = "button12";
             button12.Size = new Size(125, 60);
             button12.TabIndex = 14;
@@ -253,7 +253,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1162, 409);
+            ClientSize = new Size(1162, 414);
             Controls.Add(button12);
             Controls.Add(radioButton_32MIB);
             Controls.Add(radioButton_16MIB);

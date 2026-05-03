@@ -2,6 +2,7 @@ using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.Runtime.Intrinsics.X86;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 
@@ -62,7 +63,7 @@ namespace MenuBuilder_SupGameBox
         {
             public static string buildLocation;
         }
-                
+
         // Reference: https://stackoverflow.com/questions/59398402/listview-move-item-with-up-and-down-button-net-framework
         private void button1_Click(object sender, EventArgs e)
         {
@@ -204,6 +205,11 @@ namespace MenuBuilder_SupGameBox
 
         public bool CompileMenu()
         {
+            if (!AutoPopulateOneBus())
+            {
+                return false;
+            }
+
             // Compile the final binary file!
             // 1. Fill the configuration array, and then determine the locations.
             // 2. Generate bin file from this!
@@ -357,16 +363,19 @@ namespace MenuBuilder_SupGameBox
                 byte[] CHR_total = new byte[262144];
                 byte[] PRG_total = new byte[524288];
 
+                // We have the first 512KiB already for the startup block.
+                int TOTAL_ROM_SIZE_BYTES_ADJUSTED_512KIB = TOTAL_ROM_SIZE_BYTES - 524288;
+
+                FileStream fs = new FileStream(apps_FileName, FileMode.Create);
+
                 // Create the empty bin file here:
-                using (BinaryWriter bWriteStream = new BinaryWriter(new FileStream(apps_FileName, FileMode.OpenOrCreate)))
+                using (BinaryWriter bWriteStream = new BinaryWriter(fs))
                 {
                     byte emptyByte = 0x00;
 
                     bWriteStream.BaseStream.Seek(0, 0);
 
-                    // Todo: Add 8, 16 or 32 MiB there:
-                    // Fill with 8 megabytes minimum:
-                    for (int j = 0; j < (TOTAL_ROM_SIZE_BYTES - 1); j++)
+                    for (int j = 0; j < TOTAL_ROM_SIZE_BYTES_ADJUSTED_512KIB; j++)
                     {
                         bWriteStream.Write(emptyByte);
                     }
@@ -578,6 +587,58 @@ namespace MenuBuilder_SupGameBox
 
         private void button11_Click(object sender, EventArgs e)
         {
+            AutoPopulateOneBus();
+        }
+
+        public struct OneBusRegisters
+        {
+            public OneBusRegisters()
+            {
+                R2012 = 0;
+                R2013 = 0;
+                R2014 = 0;
+                R2015 = 0;
+                R2016 = 0;
+                R2017 = 0;
+                R2018 = 0;
+                R201A = 0;
+                R4100 = 0;
+                R4105 = 0;
+                R4106 = 0;
+                R4107 = 0;
+                R4108 = 0;
+                R4109 = 0;
+                R410A = 0;
+                R410B = 0;
+            }
+
+            public int R2012 { set; get; }
+            public int R2013 { set; get; }
+            public int R2014 { set; get; }
+            public int R2015 { set; get; }
+            public int R2016 { set; get; }
+            public int R2017 { set; get; }
+            public int R2018 { set; get; }
+            public int R201A { set; get; }
+            public int R4100 { set; get; }
+            public int R4105 { set; get; }
+            public int R4106 { set; get; }
+            public int R4107 { set; get; }
+            public int R4108 { set; get; }
+            public int R4109 { set; get; }
+            public int R410A { set; get; }
+            public int R410B { set; get; }
+
+            public override readonly string ToString()
+            {
+                string rtnStr_2000 = String.Format("0x{0:X2}, 0x{1:X2}, 0x{2:X2}, 0x{3:X2}, 0x{4:X2}, 0x{5:X2}, 0x{6:X2}, 0x{7:X2}, ", R2012, R2013, R2014, R2015, R2016, R2017, R2018, R201A);
+                string rtnStr_4000 = String.Format("0x{0:X2}, 0x{1:X2}, 0x{2:X2}, 0x{3:X2}, 0x{4:X2}, 0x{5:X2}, 0x{6:X2}, 0x{7:X2}", R4100, R4105, R4106, R4107, R4108, R4109, R410A, R410B);
+                return rtnStr_2000 + rtnStr_4000;
+            }
+        }
+
+        private bool AutoPopulateOneBus()
+        {
             // Supported Mapper 0 and MMC3 only!
             // Mapper 0 games are at lower half of the total ROM size,
             // and MMC 3 are at the upper half of the total ROM size.
@@ -652,10 +713,21 @@ namespace MenuBuilder_SupGameBox
                         {
                             MMC3_StepSizeInBytes = 0x80000;
                         }
+                        // From here we have possibly "non-standard" MMC3 sizes:
                         // For 32/32, reserve 32KiB space:
                         else if ((PRG_size == 0x8000) && (CHR_size == 0x8000))
                         {
                             MMC3_StepSizeInBytes = 0x8000;
+                        }
+                        // For 128/32, reserve 128KiB space:
+                        else if ((PRG_size == 0x20000) && (CHR_size == 0x8000))
+                        {
+                            MMC3_StepSizeInBytes = 0x20000;
+                        }
+                        // For 64/16, reserve 64KiB space:
+                        else if ((PRG_size == 0x10000) && (CHR_size == 0x4000))
+                        {
+                            MMC3_StepSizeInBytes = 0x10000;
                         }
                         // Games with CHR-RAM is very tricky - work in progress to get this right!
                         else if ((PRG_size == 0x20000) && (CHR_size == 0x0000))
@@ -806,63 +878,18 @@ namespace MenuBuilder_SupGameBox
             catch (ApplicationException ex)
             {
                 MessageBox.Show(ex.Message, "Error");
-                return;
+                return false;
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Oops! Error populating list!", "Error");
-                return;
+                return false;
             }
+
+            return true;
         }
 
-        public struct OneBusRegisters
-        {
-            public OneBusRegisters()
-            {
-                R2012 = 0;
-                R2013 = 0;
-                R2014 = 0;
-                R2015 = 0;
-                R2016 = 0;
-                R2017 = 0;
-                R2018 = 0;
-                R201A = 0;
-                R4100 = 0;
-                R4105 = 0;
-                R4106 = 0;
-                R4107 = 0;
-                R4108 = 0;
-                R4109 = 0;
-                R410A = 0;
-                R410B = 0;
-            }
-
-            public int R2012 { set; get; }
-            public int R2013 { set; get; }
-            public int R2014 { set; get; }
-            public int R2015 { set; get; }
-            public int R2016 { set; get; }
-            public int R2017 { set; get; }
-            public int R2018 { set; get; }
-            public int R201A { set; get; }
-            public int R4100 { set; get; }
-            public int R4105 { set; get; }
-            public int R4106 { set; get; }
-            public int R4107 { set; get; }
-            public int R4108 { set; get; }
-            public int R4109 { set; get; }
-            public int R410A { set; get; }
-            public int R410B { set; get; }
-
-            public override readonly string ToString()
-            {
-                string rtnStr_2000 = String.Format("0x{0:X2}, 0x{1:X2}, 0x{2:X2}, 0x{3:X2}, 0x{4:X2}, 0x{5:X2}, 0x{6:X2}, 0x{7:X2}, ", R2012, R2013, R2014, R2015, R2016, R2017, R2018, R201A);
-                string rtnStr_4000 = String.Format("0x{0:X2}, 0x{1:X2}, 0x{2:X2}, 0x{3:X2}, 0x{4:X2}, 0x{5:X2}, 0x{6:X2}, 0x{7:X2}", R4100, R4105, R4106, R4107, R4108, R4109, R410A, R410B);
-                return rtnStr_2000 + rtnStr_4000;
-            }
-        }
-
-        private static void CalcOneBus_PRG(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper, int a_HMVM, int aPRGsize)
+        private void CalcOneBus_PRG(ref OneBusRegisters a_Obr, int phyROM_Addr, int mapper, int a_HMVM, int aPRGsize)
         {
             // For this time, MMC3 games must be placed on the other half of the custom ROM!
             if (mapper == MAPPER_MMC3)
@@ -1008,7 +1035,7 @@ namespace MenuBuilder_SupGameBox
             // 2. CC65 installed.
             // 3. That menu folder, and you are inside the folder, along with the original ROM.
 
-             // Generate ROM when Compile Menu is success:
+            // Generate ROM when Compile Menu is success:
             if (!CompileMenu())
             {
                 return;
@@ -1027,7 +1054,7 @@ namespace MenuBuilder_SupGameBox
                 Form5 f5 = new Form5();
                 f5.ShowDialog();
                 f5.Dispose();
-                
+
             }
             catch (ApplicationException ex)
             {
