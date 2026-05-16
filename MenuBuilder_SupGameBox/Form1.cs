@@ -779,7 +779,12 @@ namespace MenuBuilder_SupGameBox
                                     // Inside that Sup 400-in-1 these are often set at 0x08, so I'll just follow whatever it does!
                                     // Note: these runs well in EmuVT 1.36, doesn't work very good in FCEUX emulator.
                                     MMC3_CHR_beginBlockAddr = MMC3_PRG_beginBlockAddr;
-                                    obr.R4100 |= 0x08;
+                                    // Note 2: Some consoles like the G5 have to put 0x80 into 0x4118 register for this to work!
+                                    //         These are also normally populated with 0x0C or some other values at the 0x4100 register.
+                                    int chr_switch = Convert.ToInt32(chr_ram_4100_textBox.Text, 16) & 0x0F;
+                                    obr.R4100 |= chr_switch;
+                                    // This should be cleared at the handheld's side once the 0x4118 register is filled with 0x80!
+                                    obr.R4105 |= 0x01;
                                 }
 
                                 i.SubItems[(int)GameProperties.STRT_PRG].Text = "0x" + (MMC3_PRG_beginBlockAddr).ToString("X4");

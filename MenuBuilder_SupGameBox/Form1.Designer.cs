@@ -48,6 +48,8 @@
             radioButton_16MIB = new RadioButton();
             radioButton_32MIB = new RadioButton();
             button12 = new Button();
+            chr_ram_4100_textBox = new TextBox();
+            label3 = new Label();
             SuspendLayout();
             // 
             // listView1
@@ -57,7 +59,7 @@
             listView1.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             listView1.Location = new Point(14, 44);
             listView1.Name = "listView1";
-            listView1.Size = new Size(1136, 286);
+            listView1.Size = new Size(1151, 286);
             listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.MouseDoubleClick += listView1_MouseDoubleClick;
@@ -65,7 +67,7 @@
             // button1
             // 
             button1.Image = Properties.Resources._103296_full_up_arrow_icon;
-            button1.Location = new Point(14, 336);
+            button1.Location = new Point(14, 343);
             button1.Name = "button1";
             button1.Size = new Size(62, 60);
             button1.TabIndex = 1;
@@ -77,7 +79,7 @@
             // button2
             // 
             button2.Image = Properties.Resources._1110960_essential_in_plus_round_set_icon;
-            button2.Location = new Point(82, 336);
+            button2.Location = new Point(82, 343);
             button2.Name = "button2";
             button2.Size = new Size(62, 60);
             button2.TabIndex = 1;
@@ -89,7 +91,7 @@
             // button3
             // 
             button3.Image = Properties.Resources._1110958_essential_out_minus_round_set_icon;
-            button3.Location = new Point(151, 336);
+            button3.Location = new Point(151, 343);
             button3.Name = "button3";
             button3.Size = new Size(62, 60);
             button3.TabIndex = 1;
@@ -101,7 +103,7 @@
             // button4
             // 
             button4.Image = Properties.Resources._103291_down_full_arrow_icon;
-            button4.Location = new Point(219, 335);
+            button4.Location = new Point(219, 343);
             button4.Name = "button4";
             button4.Size = new Size(62, 60);
             button4.TabIndex = 1;
@@ -112,7 +114,7 @@
             // 
             // button5
             // 
-            button5.Location = new Point(910, 342);
+            button5.Location = new Point(924, 342);
             button5.Name = "button5";
             button5.Size = new Size(110, 59);
             button5.TabIndex = 4;
@@ -122,7 +124,7 @@
             // 
             // button6
             // 
-            button6.Location = new Point(578, 342);
+            button6.Location = new Point(674, 342);
             button6.Name = "button6";
             button6.Size = new Size(129, 60);
             button6.TabIndex = 1;
@@ -132,9 +134,9 @@
             // 
             // button7
             // 
-            button7.Location = new Point(714, 342);
+            button7.Location = new Point(809, 341);
             button7.Name = "button7";
-            button7.Size = new Size(190, 59);
+            button7.Size = new Size(109, 59);
             button7.TabIndex = 1;
             button7.Text = "Set Start CHR and PRG";
             button7.UseVisualStyleBackColor = true;
@@ -169,7 +171,7 @@
             // 
             // button9
             // 
-            button9.Location = new Point(932, 10);
+            button9.Location = new Point(947, 10);
             button9.Name = "button9";
             button9.Size = new Size(102, 26);
             button9.TabIndex = 8;
@@ -179,7 +181,7 @@
             // 
             // button10
             // 
-            button10.Location = new Point(1040, 10);
+            button10.Location = new Point(1055, 10);
             button10.Name = "button10";
             button10.Size = new Size(110, 26);
             button10.TabIndex = 9;
@@ -189,7 +191,7 @@
             // 
             // button11
             // 
-            button11.Location = new Point(433, 342);
+            button11.Location = new Point(523, 342);
             button11.Name = "button11";
             button11.Size = new Size(141, 61);
             button11.TabIndex = 10;
@@ -241,7 +243,7 @@
             // button12
             // 
             button12.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button12.Location = new Point(1027, 342);
+            button12.Location = new Point(1040, 341);
             button12.Name = "button12";
             button12.Size = new Size(125, 60);
             button12.TabIndex = 14;
@@ -249,11 +251,33 @@
             button12.UseVisualStyleBackColor = true;
             button12.Click += button12_Click;
             // 
+            // chr_ram_4100_textBox
+            // 
+            chr_ram_4100_textBox.Location = new Point(419, 385);
+            chr_ram_4100_textBox.MaxLength = 1;
+            chr_ram_4100_textBox.Name = "chr_ram_4100_textBox";
+            chr_ram_4100_textBox.Size = new Size(35, 26);
+            chr_ram_4100_textBox.TabIndex = 15;
+            chr_ram_4100_textBox.Text = "8";
+            chr_ram_4100_textBox.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label3.Location = new Point(287, 386);
+            label3.Name = "label3";
+            label3.Size = new Size(126, 21);
+            label3.TabIndex = 16;
+            label3.Text = "4100 CHR RAM:";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1162, 414);
+            ClientSize = new Size(1177, 425);
+            Controls.Add(label3);
+            Controls.Add(chr_ram_4100_textBox);
             Controls.Add(button12);
             Controls.Add(radioButton_32MIB);
             Controls.Add(radioButton_16MIB);
@@ -303,5 +327,7 @@
         private RadioButton radioButton_16MIB;
         private RadioButton radioButton_32MIB;
         private Button button12;
+        private TextBox chr_ram_4100_textBox;
+        private Label label3;
     }
 }
